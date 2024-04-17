@@ -7,17 +7,26 @@ import { Subject } from 'rxjs';
 })
 export class SignalrService {
   private connection: any = null;
-  private latestSummary = new Subject<any>();
+  public latestSummary = new Subject<any>();
   constructor() { 
-    this.connection = new SignalR.HubConnectionBuilder().withUrl("http://localhost:5283/StudentRankingHub")   // mapping to the chathub as in startup.cs
+    this.connection = new SignalR.HubConnectionBuilder().withUrl("http://localhost:5283/StudentRankingLatest")   // mapping to the chathub as in startup.cs
       .configureLogging(SignalR.LogLevel.Information)
       .build();
+    
+  }
 
-      this.connection.on('SummaryUpdated', (summary: any) => { this.refreshTheUpdatedSummary(summary)  });
+  ngOnInit() {
+  }
+
+  addSummaryUpdateListener(): void {
+    this.connection.on('summaryUpdated', (summary: any) => { 
+      console.log('Summary updated');
+      this.refreshTheUpdatedSummary(summary); 
+    });
   }
 
   startConnection(): void {
-    if (this.connection == null) {
+    if (this.connection == null || !this.connection.started ) {
       this.connection
         .start()
         .then(() => {
@@ -33,6 +42,7 @@ export class SignalrService {
   }
 
   refreshTheUpdatedSummary(summary: any) {
+    console.log('Summary updated', summary);
     this.latestSummary.next(summary);
   }
 
